@@ -5,38 +5,117 @@ set -e;
 
 #local path_this _hash _time;
 
-path_this=$(dirname "${0}");
-source "${path_this}"'/../cfg/ndx.bash';
+#this_path=$(dirname "${0}");
+this_file=$(basename "${0}");
+#source "${this_path}"'/../cfg/ndx.bash';
+#this_ver='0.1';
 
-if test ! -d "${path_this}"'/../site/struct/repo/orig';
+# 
+# Prelude
+# 
+
+if test ${#} -lt 1;
 then
-	git clone --depth=3 "${repo_src_uri}" "${path_this}"'/../site/struct/repo/orig';
-	cd "${path_this}"'/../site/struct/repo/orig';
-	git update-server-info;
-	#cd "${path_this}";
+	1>&2 printf 'Usage: '"${this_file}"': -option [val] [-option [val] [...]]''\n';
+	1>&2 printf '  See `'"${this_file}"' -h`''\n';
+	exit 1;
+fi;
+
+declare -a param;
+while getopts d:s:p:h _param;
+do
+	case "${_param}" in
+		# Destination
+		'd')
+			dest="${OPTARG}";
+			;;
+		
+		# Source
+		's')
+			src="${OPTARG}";
+			;;
+		
+		# Source
+		'p')
+			param+=("${OPTARG}");
+			;;
+		
+		# Help/About/Usage
+		'h')
+			printf "${this_file}"': ''Version control system commitments unpacker''\n';
+			printf "${this_file}"' -option [val] [-option [val] [...]]''\n';
+			printf '  -d path''\n';
+			printf '          Folder, destination''\n';
+			printf '  -s path''\n';
+			printf '          Folder, source''\n';
+			printf '  -h''\n';
+			printf '          Help/About/Usage''\n';
+			printf '  -p param''\n';
+			printf '            Additional parameters passed to the''\n';
+			printf '          command which displays the commitments.''\n';
+			printf '            May be specified multiple times.''\n';
+			printf '            If it is specified multiple times,''\n';
+			printf '          the order which its instances are''\n';
+			printf '          specified in, is the order which they are''\n';
+			printf '          passed in, to the command.''\n';
+			#printf '  -V''\n';
+			#printf '          Version''\n';
+			exit 0;
+			;;
+		
+		## Version
+		#'V')
+		#	printf "${this_ver}"'\n';
+		#	exit 0;
+		#	;;
+		
+		# Unrecognized option
+		*)
+			#1>&2 printf "${this_file}"': '"${param}"': Unrecognized option. See above''\n';
+			1>&2 printf "${this_file}"': Unrecognized option. See above''\n';
+			exit 1;
+			;;
+	esac;
+done;
+shift $((OPTIND-1));
+
+# Sanity verification
+if test ! -e "${src}";
+then
+	1>&2 printf "${this_file}"': '"[""${src}""]"': No such file or directory';
+	exit 1;
 fi
 
-#cp objects/pack/*.pack '../unpacked';
-#git unpack-objects < ./*pack;
-##rm ./*pack;
+#if test ! -e "${dest}";
+#then
+#	printf >&2 "${this_file}"': '"[""${dest}""]"': No such file or directory';
+#	exit 1;
+#fi
 
-cd "${path_this}"'/../site/struct/repo/orig';
-#for commitment in $(git log --oneline --pretty='format:%H|%ci' -3);
-git log --oneline --pretty='format:%H|%ci' -3 |
-while IFS= read -r commitment || [[ -n "${commitment}" ]];
+# Parsing
+#if test -n "${max}";
+#then
+#fi
+
+
+# 
+# Main
+# 
+
+cd "${src}";
+#git log --pretty='format:%H|%ci' "${param[@]}" |
+while IFS= read -r commitment || test -n "${commitment}";
 do
-	_hash=$(echo "${commitment}" | cut --delimiter='|' --fields='1' -);
+	#printf "::commitment:[${commitment}]"'\n';
+	_hash=$(printf "${commitment}"'\n' | cut --delimiter='|' --fields='1' -);
+	_time=$(printf "${commitment}"'\n' | cut --delimiter='|' --fields='2' -);
 	
-	if test ! -d "${path_this}"'/../site/struct/repo/unpkg/'"${_hash}";
-	then
-		_time=$(echo "${commitment}" | cut --delimiter='|' --fields='2' -);
-		
-		git checkout "${_hash}";
-		mkdir --parents "${path_this}"'/../site/struct/repo/unpkg/'"${_hash}";
-		rsync -aHAXS --exclude='/.git' "${path_this}"'/../site/struct/repo/orig/' "${path_this}"'/../site/struct/repo/unpkg/'"${_hash}"'/';
-		#rsync -aHAXS --exclude='/.git' './' '../unpkg/'"${_hash}"'/';
-	fi;
-	
-	#touch --no-dereference --date="${_time}" '../unpkg/'"${_hash}";
-	touch --no-dereference --date="${_time}" "${path_this}"'/../site/struct/repo/unpkg/'"${_hash}";
-done;
+	git checkout "${_hash}";
+	mkdir --parents "${dest}"'/'"${_hash}";
+	rsync -aHAXS --exclude='/.git' "${src}"'/' "${dest}"'/'"${_hash}"'/';
+	touch --no-dereference --date="${_time}" "${dest}"'/'"${_hash}";
+#done;
+done <<< $(git log --pretty='format:%H|%ci' "${param[@]}");
+
+#printf "_hash:[${_hash}]\n";
+#printf "_time[${_time}]\n";
