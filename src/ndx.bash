@@ -113,7 +113,7 @@ do
 	
 	git checkout "${_hash}";
 	mkdir --parents "${dest}"'/'"${_hash}";
-	rsync -aHAXS --exclude='/.git' "${src}"'/' "${dest}"'/'"${_hash}"'/';
+	rsync -aHAXS --numeric-ids --exclude='/.git' "${src}"'/' "${dest}"'/'"${_hash}"'/';
 	touch --no-dereference --date="${_time}" "${dest}"'/'"${_hash}";
 #done;
 done <<< $(git log --pretty='format:%H|%ci' "${opt_oth[@]}");
