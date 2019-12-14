@@ -23,9 +23,9 @@ fi;
 
 # other options
 declare -a opt_oth;
-while getopts d:s:o:h _param;
+while getopts d:s:o:h arg;
 do
-	case "${_param}" in
+	case "${arg}" in
 		# Destination
 		'd')
 			dest="${OPTARG}";
@@ -72,7 +72,7 @@ do
 		
 		# Unrecognized option
 		*)
-			#1>&2 printf "${this_file}"': '"${_param}"': Unrecognized option. See above''\n';
+			#1>&2 printf "${this_file}"': '"${arg}"': Unrecognized option. See above''\n';
 			1>&2 printf "${this_file}"': Unrecognized option. See above''\n';
 			exit 1;
 			;;
