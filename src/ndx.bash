@@ -21,8 +21,9 @@ then
 	exit 1;
 fi;
 
-declare -a param;
-while getopts d:s:p:h _param;
+# other options
+declare -a opt_oth;
+while getopts d:s:o:h _param;
 do
 	case "${_param}" in
 		# Destination
@@ -35,9 +36,9 @@ do
 			src="${OPTARG}";
 			;;
 		
-		# Source
-		'p')
-			param+=("${OPTARG}");
+		# Other options
+		'o')
+			opt_oth+=("${OPTARG}");
 			;;
 		
 		# Help/About/Usage
@@ -48,16 +49,16 @@ do
 			printf '          Folder, destination''\n';
 			printf '  -s path''\n';
 			printf '          Folder, source''\n';
-			printf '  -h''\n';
-			printf '          Help/About/Usage''\n';
-			printf '  -p param''\n';
-			printf '            Additional parameters passed to the''\n';
+			printf '  -o opt''\n';
+			printf '            Additional parameter passed to the''\n';
 			printf '          command which displays the commitments.''\n';
 			printf '            May be specified multiple times.''\n';
 			printf '            If it is specified multiple times,''\n';
 			printf '          the order which its instances are''\n';
 			printf '          specified in, is the order which they are''\n';
 			printf '          passed in, to the command.''\n';
+			printf '  -h''\n';
+			printf '          Help/About/Usage''\n';
 			#printf '  -V''\n';
 			#printf '          Version''\n';
 			exit 0;
@@ -71,7 +72,7 @@ do
 		
 		# Unrecognized option
 		*)
-			#1>&2 printf "${this_file}"': '"${param}"': Unrecognized option. See above''\n';
+			#1>&2 printf "${this_file}"': '"${_param}"': Unrecognized option. See above''\n';
 			1>&2 printf "${this_file}"': Unrecognized option. See above''\n';
 			exit 1;
 			;;
@@ -103,7 +104,7 @@ fi
 # 
 
 cd "${src}";
-#git log --pretty='format:%H|%ci' "${param[@]}" |
+#git log --pretty='format:%H|%ci' "${opt_oth[@]}" |
 while IFS= read -r commitment || test -n "${commitment}";
 do
 	#printf "::commitment:[${commitment}]"'\n';
@@ -115,7 +116,7 @@ do
 	rsync -aHAXS --exclude='/.git' "${src}"'/' "${dest}"'/'"${_hash}"'/';
 	touch --no-dereference --date="${_time}" "${dest}"'/'"${_hash}";
 #done;
-done <<< $(git log --pretty='format:%H|%ci' "${param[@]}");
+done <<< $(git log --pretty='format:%H|%ci' "${opt_oth[@]}");
 
 #printf "_hash:[${_hash}]\n";
 #printf "_time[${_time}]\n";
